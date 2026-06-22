@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from app.api.routes import auth
 
 # 1. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
@@ -26,3 +27,5 @@ app.add_middleware(
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "1.0"}
+
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
