@@ -1,0 +1,9 @@
+# Ignore the real secrets file so you don't accidentally publish your passwords!
+backend/.env
+.env
+
+# Standard Python ignores
+__pycache__/
+*.pyc
+.venv/
+venv/
