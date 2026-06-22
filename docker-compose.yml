@@ -1,33 +1,31 @@
 version: '3.8'
 
 services:
-  # 1. The PostgreSQL Database Service
   db:
     image: postgres:15
     container_name: cloudcost_postgres
     restart: always
-    # This tells Docker to look inside your backend folder and use the passwords in your .env file
-    env_file:
-      - ./backend/.env
+    # We replaced env_file with explicit environment variables to fix the Windows bug
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=supersecretpassword
+      - POSTGRES_DB=cloudcost
     ports:
-      - "5432:5432" # Maps your computer's port to the container's port
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 2. The pgAdmin Visual Interface
   pgadmin:
     image: dpage/pgadmin4
     container_name: cloudcost_pgadmin
     restart: always
     environment:
-      # This is the login you will use to open the visual database tool in your browser
-      PGADMIN_DEFAULT_EMAIL: admin@cloudcost.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      - PGADMIN_DEFAULT_EMAIL=admin@cloudcost.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
-      - "5050:80" 
+      - "5050:80"
     depends_on:
-      - db 
+      - db
 
 volumes:
-  # This saves your database data so it doesn't disappear when you turn Docker off
   postgres_data:
