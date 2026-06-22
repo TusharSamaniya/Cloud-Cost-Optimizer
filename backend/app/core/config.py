@@ -6,6 +6,11 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     DATABASE_URL: str
 
+    # New JWT Secrets
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+
     # This tells Python to look for the .env file in the current directory
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
