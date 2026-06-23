@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 # 1. Cleaned up imports (no duplicates!)
 from app.api.routes import auth, aws, sync
 from app.core.scheduler import scheduler
+from app.api.routes import auth, aws, sync, recommendations, anomalies, dashboard
 
 # 2. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
@@ -36,3 +37,7 @@ def health_check():
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(aws.router, prefix="/api/aws", tags=["AWS Integration"])
 app.include_router(sync.router, prefix="/api/sync", tags=["Data Sync"])
+
+app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
+app.include_router(anomalies.router, prefix="/api/anomalies", tags=["Anomalies"])
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
