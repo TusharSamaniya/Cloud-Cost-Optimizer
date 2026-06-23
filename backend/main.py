@@ -1,37 +1,38 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.api.routes import auth
-from app.api.routes import auth, aws
-from app.api.routes import auth, aws, sync
 
-# 1. Lifespan events (Startup & Shutdown)
+# 1. Cleaned up imports (no duplicates!)
+from app.api.routes import auth, aws, sync
+from app.core.scheduler import scheduler
+
+# 2. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Server is starting up... Ready to optimize costs!")
-    # Later, we will add database connection logic here
+    # This runs when the server STARTS
+    scheduler.start()
     yield
-    print("Server is shutting down...")
+    # This runs when the server STOPS
+    scheduler.shutdown()
 
-# 2. Instantiate the FastAPI application
+# 3. Instantiate the app EXACTLY ONCE
 app = FastAPI(title="Cloud Cost Optimizer API", lifespan=lifespan)
 
-# 3. Add CORS Middleware (Allows your future React frontend to talk to this backend)
+# 4. Add CORS Middleware 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, we restrict this. For now, allow all.
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 4. The Health Check Route
+# 5. The Health Check Route
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "1.0"}
 
+# 6. Register Routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-
 app.include_router(aws.router, prefix="/api/aws", tags=["AWS Integration"])
-
 app.include_router(sync.router, prefix="/api/sync", tags=["Data Sync"])
