@@ -14,3 +14,7 @@ email-validator
 boto3
 cryptography
 apscheduler
+scikit-learn
+pandas
+numpy
+prophet
