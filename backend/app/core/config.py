@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    ENCRYPTION_KEY: str
+
     # This tells Python to look for the .env file in the current directory
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
