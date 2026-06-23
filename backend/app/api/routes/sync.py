@@ -24,10 +24,11 @@ def sync_cloud_data(current_user: User = Depends(get_current_user), db: Session 
             new_resource = Resource(
                 user_id=current_user.id,
                 resource_id=item["resource_id"],
-                service_name=item["service_name"],
-                resource_type=item["resource_type"],
-                region=item["region"]
-                # Note: We aren't saving cost/cpu here yet, we will do that in the recommendations step!
+                name=item["service_name"],            # Mapped to 'name'
+                type=item["resource_type"],           # Mapped to 'type'
+                region=item["region"],
+                monthly_cost=item["cost_amount"],     # Added to match your model!
+                avg_cpu_percent=item["cpu_utilization"] # Added to match your model!
             )
             db.add(new_resource)
             
