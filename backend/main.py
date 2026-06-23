@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.api.routes import auth
 from app.api.routes import auth, aws
+from app.api.routes import auth, aws, sync
 
 # 1. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
@@ -32,3 +33,5 @@ def health_check():
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 
 app.include_router(aws.router, prefix="/api/aws", tags=["AWS Integration"])
+
+app.include_router(sync.router, prefix="/api/sync", tags=["Data Sync"])
