@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     ENCRYPTION_KEY: str
 
+    USE_MOCK_DATA: bool = False
+
     # This tells Python to look for the .env file in the current directory
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
