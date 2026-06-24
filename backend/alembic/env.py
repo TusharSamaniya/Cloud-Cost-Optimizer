@@ -11,6 +11,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # 2. Import ALL your models so Alembic knows what tables to create
 from app.db.base import Base
+# Explicitly import the new Forecast model so Alembic registers it
+from app.db.models.forecast import Forecast
 from app.db.models import user, resource, recommendation, anomaly
 
 # This is the Alembic Config object
