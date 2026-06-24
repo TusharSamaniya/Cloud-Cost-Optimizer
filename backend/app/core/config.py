@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -15,8 +16,12 @@ class Settings(BaseSettings):
 
     USE_MOCK_DATA: bool = False
 
-    # This tells Python to look for the .env file in the current directory
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    # This ensures Pydantic always finds the .env file in the backend folder, 
+    # even if you run scripts from the project root.
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "backend", ".env"),
+        env_file_encoding="utf-8"
+    )
 
 # We create one instance of this to use throughout our app
 settings = Settings()
