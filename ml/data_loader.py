@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'b
 
 from app.db.session import SessionLocal
 from app.db.models.resource import Resource
+from app.db.models.user import User
 
 class MLDataLoader:
     def get_resources(self, user_id: int) -> pd.DataFrame:
