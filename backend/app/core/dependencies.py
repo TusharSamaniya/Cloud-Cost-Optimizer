@@ -9,7 +9,7 @@ from app.services.user_service import get_user_by_email
 # This tells FastAPI where our login route is so it can generate the "Authorize" button in Swagger UI
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-# This creates a fresh database connection for every single web request
+# This creates a fresh database connection for every single web request 
 def get_db():
     db = SessionLocal()
     try:

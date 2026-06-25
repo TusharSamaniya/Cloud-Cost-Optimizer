@@ -1,12 +1,20 @@
+import sys
+import os
+
+# 0. Add root directory to sys.path so 'ml' module can be found
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 # 1. Cleaned up imports (no duplicates!)
-from app.api.routes import auth, aws, sync
+from app.api.routes import (
+    auth, aws, sync, recommendations, 
+    anomalies, dashboard, ml
+)
 from app.core.scheduler import scheduler
-from app.api.routes import auth, aws, sync, recommendations, anomalies, dashboard
-from app.api.routes import ml
 
 # 2. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
@@ -17,7 +25,7 @@ async def lifespan(app: FastAPI):
     # This runs when the server STOPS
     scheduler.shutdown()
 
-# 3. Instantiate the app EXACTLY ONCE
+# 3. Instantiate the app
 app = FastAPI(title="Cloud Cost Optimizer API", lifespan=lifespan)
 
 # 4. Add CORS Middleware 
@@ -38,9 +46,7 @@ def health_check():
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(aws.router, prefix="/api/aws", tags=["AWS Integration"])
 app.include_router(sync.router, prefix="/api/sync", tags=["Data Sync"])
-
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(anomalies.router, prefix="/api/anomalies", tags=["Anomalies"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
-
 app.include_router(ml.router, prefix="/api/ml", tags=["ML"])

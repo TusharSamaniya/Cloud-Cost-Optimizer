@@ -1,33 +1,72 @@
 import logging
+import os
+import sys
+
+# Make sure the ml/ folder is importable from the scheduler
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..')))
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.db.session import SessionLocal
 from app.db.models.user import User
 
-# Set up a logger so we can see the scheduler working in the terminal
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def daily_sync():
-    """This function runs automatically in the background."""
-    logger.info("Starting automated daily sync...")
-    
-    # We need to open a fresh database connection for the background worker
+
+def get_all_active_users():
+    """Returns all users who have AWS credentials saved."""
     db = SessionLocal()
     try:
-        # Find all users who have actually saved their AWS keys
-        active_users = db.query(User).filter(User.aws_access_key.isnot(None)).all()
-        
-        for user in active_users:
-            logger.info(f"Syncing data for user ID: {user.id}")
-            # In a fully connected app, we would call our sync_cloud_data logic here!
-            
-    except Exception as e:
-        logger.error(f"Error during background sync: {e}")
+        # Only sync users who have actually connected their AWS account
+        users = db.query(User).filter(User.aws_access_key.isnot(None)).all()
+        return users
     finally:
-        db.close() # Always close the door behind you!
-        
-    logger.info("Automated daily sync complete.")
+        db.close()
 
-# Create the scheduler and tell it to run our function at 2:00 AM every day
+
+async def daily_sync_and_pipeline():
+    """
+    This runs automatically every night at 2:00 AM.
+    For each user with AWS credentials:
+      1. Syncs fresh data from AWS (or mock)
+      2. Runs the full ML pipeline on that fresh data
+    """
+    logger.info("=" * 50)
+    logger.info("Starting automated nightly sync...")
+
+    # ✅ FIX 3: import here (inside the function) to avoid circular imports at startup
+    from ml.pipeline import run_full_pipeline
+
+    users = get_all_active_users()
+    logger.info(f"Found {len(users)} active user(s) to sync.")
+
+    for user in users:
+        logger.info(f"Processing user_id={user.id} ({user.email})")
+        try:
+            # Step 1 — sync AWS data into the database
+            # (Your existing sync logic writes to the Resource table)
+            # sync_aws_data(user.id)  ← uncomment when you wire sync route
+
+            # Step 2 — run all 4 ML models on the fresh data
+            run_full_pipeline(user.id)                 # ✅ FIX 4: called correctly
+            logger.info(f"Pipeline complete for user_id={user.id}")
+
+        except Exception as e:
+            # One user failing must NOT stop other users from being processed
+            logger.error(f"Failed for user_id={user.id}: {e}")
+            continue
+
+    logger.info("Nightly sync complete.")
+    logger.info("=" * 50)
+
+
+# ✅ FIX 3: only ONE scheduler, only ONE job added — the correct async function
 scheduler = AsyncIOScheduler()
-scheduler.add_job(daily_sync, 'cron', hour=2, minute=0)
+scheduler.add_job(
+    daily_sync_and_pipeline,
+    trigger='cron',
+    hour=2,
+    minute=0,
+    id='nightly_sync',          # named ID makes it easy to inspect/cancel
+    replace_existing=True,
+)
