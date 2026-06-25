@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from app.api.routes import auth, aws, sync
 from app.core.scheduler import scheduler
 from app.api.routes import auth, aws, sync, recommendations, anomalies, dashboard
+from app.api.routes import ml
 
 # 2. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
@@ -41,3 +42,5 @@ app.include_router(sync.router, prefix="/api/sync", tags=["Data Sync"])
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(anomalies.router, prefix="/api/anomalies", tags=["Anomalies"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
+
+app.include_router(ml.router, prefix="/api/ml", tags=["ML"])
