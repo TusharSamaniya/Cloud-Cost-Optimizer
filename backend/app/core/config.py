@@ -1,5 +1,21 @@
 import os
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
+    )
+)
+
+ENV_PATH = os.path.join(BASE_DIR, ".env")
+
+if os.path.exists(ENV_PATH):
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
+else:
+    print(f"Warning: Could not find .env file at {ENV_PATH}")
 
 class Settings(BaseSettings):
     POSTGRES_USER: str
@@ -7,7 +23,6 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     DATABASE_URL: str
 
-    # New JWT Secrets
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
@@ -16,12 +31,9 @@ class Settings(BaseSettings):
 
     USE_MOCK_DATA: bool = False
 
-    # This ensures Pydantic always finds the .env file in the backend folder, 
-    # even if you run scripts from the project root.
     model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "backend", ".env"),
+        env_file=ENV_PATH,
         env_file_encoding="utf-8"
     )
 
-# We create one instance of this to use throughout our app
 settings = Settings()
