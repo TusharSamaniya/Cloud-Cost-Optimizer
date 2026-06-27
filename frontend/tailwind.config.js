@@ -7,7 +7,15 @@ export default {
   ],
   theme: {
     extend: {
-      // ADD THESE TWO BLOCKS: keyframes and animation
+      // THIS IS THE NEW PART: Mapping our custom colors
+      colors: {
+        'accent': '#1D9E75',
+        'bg-primary': 'var(--bg-primary)',
+        'bg-secondary': 'var(--bg-secondary)',
+        'text-primary': 'var(--text-primary)',
+        'text-muted': 'var(--text-muted)',
+        'border': 'var(--border)'
+      },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
