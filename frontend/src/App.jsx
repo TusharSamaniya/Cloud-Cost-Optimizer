@@ -3,17 +3,14 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import DashboardLayout from './layouts/DashboardLayout';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 // Step 4: PrivateRoute logic
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? children : <Navigate to="/login" replace />;
-  
 };
-
-// Temporary placeholder components so the router works immediately
-const PlaceholderLogin = () => <div className="p-8">Login Page (Coming Soon)</div>;
-const PlaceholderDashboard = () => <div>Main Dashboard Content (Coming Soon)</div>;
 
 function App() {
   return (
@@ -24,8 +21,8 @@ function App() {
         
         <Routes>
           {/* Public Routes */}
-          <Route path="/login" element={<PlaceholderLogin />} />
-          <Route path="/register" element={<div className="p-8">Register Page</div>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
           {/* Protected Routes wrapped in DashboardLayout */}
           <Route path="/" element={
@@ -34,7 +31,7 @@ function App() {
             </PrivateRoute>
           }>
             {/* The index route renders at the exactly '/' path inside the Outlet */}
-            <Route index element={<PlaceholderDashboard />} />
+            <Route index element={<div>Main Dashboard Content (Coming Soon)</div>} />
             <Route path="resources" element={<div>Resources Page</div>} />
             <Route path="recommendations" element={<div>Recommendations Page</div>} />
             <Route path="anomalies" element={<div>Anomalies Page</div>} />
