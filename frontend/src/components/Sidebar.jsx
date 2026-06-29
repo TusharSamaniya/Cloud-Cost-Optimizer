@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Server, Lightbulb, AlertTriangle, TrendingUp, LogOut } from 'lucide-react';
+import { LayoutDashboard, Server, Lightbulb, AlertTriangle, TrendingUp, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Sidebar() {
@@ -11,6 +11,7 @@ export default function Sidebar() {
     { name: 'Recommendations', path: '/recommendations', icon: Lightbulb },
     { name: 'Anomalies', path: '/anomalies', icon: AlertTriangle },
     { name: 'Forecast', path: '/forecast', icon: TrendingUp },
+    { name: 'Settings', path: '/settings', icon: Settings }, // <-- ADDED THIS LINE
   ];
 
   return (
