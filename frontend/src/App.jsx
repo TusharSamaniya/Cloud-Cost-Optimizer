@@ -9,6 +9,8 @@ import DashboardPage from './pages/DashboardPage';
 import ResourcesPage from './pages/ResourcesPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import AnomaliesPage from './pages/AnomaliesPage';
+import ForecastPage from './pages/ForecastPage';
+import SettingsPage from './pages/SettingsPage';
 
 // Step 4: PrivateRoute logic
 const PrivateRoute = ({ children }) => {
@@ -42,7 +44,8 @@ function App() {
             <Route path="recommendations" element={<RecommendationsPage />} />
             <Route path="anomalies" element={<AnomaliesPage />} />
             
-            <Route path="forecast" element={<div>Forecast Page</div>} />
+            <Route path="forecast" element={<ForecastPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
