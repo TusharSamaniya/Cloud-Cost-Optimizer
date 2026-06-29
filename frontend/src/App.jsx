@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ResourcesPage from './pages/ResourcesPage';
+import RecommendationsPage from './pages/RecommendationsPage';
+import AnomaliesPage from './pages/AnomaliesPage';
 
 // Step 4: PrivateRoute logic
 const PrivateRoute = ({ children }) => {
@@ -35,8 +37,11 @@ function App() {
             {/* These are the correct, single route definitions */}
             <Route index element={<DashboardPage />} />
             <Route path="resources" element={<ResourcesPage />} />
-            <Route path="recommendations" element={<div>Recommendations Page</div>} />
-            <Route path="anomalies" element={<div>Anomalies Page</div>} />
+            
+            {/* Swapped the placeholders for the real components here: */}
+            <Route path="recommendations" element={<RecommendationsPage />} />
+            <Route path="anomalies" element={<AnomaliesPage />} />
+            
             <Route path="forecast" element={<div>Forecast Page</div>} />
           </Route>
         </Routes>
