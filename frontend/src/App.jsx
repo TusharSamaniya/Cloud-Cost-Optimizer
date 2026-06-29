@@ -5,6 +5,8 @@ import { useAuth } from './hooks/useAuth';
 import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
+import ResourcesPage from './pages/ResourcesPage';
 
 // Step 4: PrivateRoute logic
 const PrivateRoute = ({ children }) => {
@@ -30,9 +32,9 @@ function App() {
               <DashboardLayout />
             </PrivateRoute>
           }>
-            {/* The index route renders at the exactly '/' path inside the Outlet */}
-            <Route index element={<div>Main Dashboard Content (Coming Soon)</div>} />
-            <Route path="resources" element={<div>Resources Page</div>} />
+            {/* These are the correct, single route definitions */}
+            <Route index element={<DashboardPage />} />
+            <Route path="resources" element={<ResourcesPage />} />
             <Route path="recommendations" element={<div>Recommendations Page</div>} />
             <Route path="anomalies" element={<div>Anomalies Page</div>} />
             <Route path="forecast" element={<div>Forecast Page</div>} />

@@ -28,7 +28,12 @@ export default function DashboardPage() {
     );
   }
 
-  const data = summary || { total_spend: 0, wasted_spend: 0, savings_percent: 0, resources_scanned: 0 };
+  const data = {
+  total_spend: summary?.total_spend || 0,
+  wasted_spend: summary?.wasted_spend || 0,
+  savings_percent: summary?.savings_percent || 0,
+  resources_scanned: summary?.resources_scanned || 0
+};
   const topRecs = Array.isArray(recs) ? recs.slice(0, 3) : [];
 
   return (
