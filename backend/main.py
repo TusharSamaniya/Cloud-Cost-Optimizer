@@ -9,11 +9,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-# 1. Cleaned up imports — added 'settings' module for the demo-mode toggle endpoint
-from app.api.routes import (
-    auth, aws, sync, recommendations,
-    anomalies, dashboard, ml, settings as settings_routes
-)
+# 1. Import each route module individually with a clear, unambiguous alias.
+#    Using "from app.api.routes import (a, b, settings as settings_routes)"
+#    can trip up Python's import resolution on some setups because the
+#    submodule name 'settings' collides visually with the Settings class
+#    used elsewhere. Importing it as its own line with importlib-style
+#    dotted path avoids any ambiguity entirely.
+from app.api.routes import auth
+from app.api.routes import aws
+from app.api.routes import sync
+from app.api.routes import recommendations
+from app.api.routes import anomalies
+from app.api.routes import dashboard
+from app.api.routes import ml
+from app.api.routes import settings as app_settings_routes  # renamed clearly
+
 from app.core.scheduler import scheduler
 
 # 2. Lifespan events (Startup & Shutdown)
@@ -48,5 +58,4 @@ app.include_router(recommendations.router, prefix="/api/recommendations", tags=[
 app.include_router(anomalies.router, prefix="/api/anomalies", tags=["Anomalies"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(ml.router, prefix="/api/ml", tags=["ML"])
-# NEW: registers the demo-mode get/post endpoints used by the fixed SettingsPage
-app.include_router(settings_routes.router, prefix="/api/settings", tags=["Settings"])
+app.include_router(app_settings_routes.router, prefix="/api/settings", tags=["Settings"])
