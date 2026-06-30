@@ -9,29 +9,27 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-# 1. Cleaned up imports (no duplicates!)
+# 1. Cleaned up imports — added 'settings' module for the demo-mode toggle endpoint
 from app.api.routes import (
-    auth, aws, sync, recommendations, 
-    anomalies, dashboard, ml
+    auth, aws, sync, recommendations,
+    anomalies, dashboard, ml, settings as settings_routes
 )
 from app.core.scheduler import scheduler
 
 # 2. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # This runs when the server STARTS
     scheduler.start()
     yield
-    # This runs when the server STOPS
     scheduler.shutdown()
 
 # 3. Instantiate the app
 app = FastAPI(title="Cloud Cost Optimizer API", lifespan=lifespan)
 
-# 4. Add CORS Middleware 
+# 4. Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,3 +48,5 @@ app.include_router(recommendations.router, prefix="/api/recommendations", tags=[
 app.include_router(anomalies.router, prefix="/api/anomalies", tags=["Anomalies"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(ml.router, prefix="/api/ml", tags=["ML"])
+# NEW: registers the demo-mode get/post endpoints used by the fixed SettingsPage
+app.include_router(settings_routes.router, prefix="/api/settings", tags=["Settings"])
