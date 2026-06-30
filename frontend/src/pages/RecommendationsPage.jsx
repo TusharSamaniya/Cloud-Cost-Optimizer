@@ -73,7 +73,7 @@ export default function RecommendationsPage() {
   const totalPendingSavings = (recommendations || [])
     .filter((r) => r.status === 'pending')
     .reduce(
-      (sum, r) => sum + (r.estimated_savings || 0),
+      (sum, r) => sum + (r.saving_amount || 0),
       0
     );
 
@@ -118,7 +118,7 @@ export default function RecommendationsPage() {
             <RecommendationCard
               key={rec.id}
               {...rec}
-              savingAmount={rec.estimated_savings}
+              savingAmount={rec.saving_amount}
               onAction={handleAction}
             />
           ))

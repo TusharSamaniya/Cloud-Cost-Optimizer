@@ -16,19 +16,29 @@ export default function AWSConnectCard({ onConnectionSuccess, onConnectionError 
 
     setIsLoading(true);
     try {
-      // 1. Save credentials
-      await client.post('/api/aws/credentials', { access_key: accessKey, secret_key: secretKey });
-      
-      // 2. Validate by running a sync
-      await client.post('/api/sync/aws');
-      
+      // Step 1 — save (backend now validates against AWS STS before saving)
+      const saveResponse = await client.post('/api/aws/credentials', {
+        access_key: accessKey,
+        secret_key: secretKey,
+      });
+
       toast.success('AWS Connection successful!');
-      onConnectionSuccess('AWS-9382-7481'); // In a real app, extract from API response
+      // BUG FIXED: account ID was hardcoded as 'AWS-9382-7481' before.
+      // The backend now actually returns the real AWS account_id from STS.
+      onConnectionSuccess(saveResponse.data.account_id || 'Connected');
     } catch (error) {
-      // Map raw API errors to friendly UX messages
-      const isForbidden = error.response?.status === 403;
-      const msg = isForbidden ? 'Insufficient IAM permissions' : 'Invalid credentials';
-      toast.error(`Connection failed: ${msg}`);
+      // BUG FIXED: previously this called '/api/sync/aws' which does not
+      // exist on the backend (correct route is '/api/sync/'), so the
+      // validation step ALWAYS failed with a 404 — even with perfectly
+      // valid AWS keys. That extra unnecessary call has been removed
+      // entirely because /api/aws/credentials now validates internally.
+      //
+      // We now read the REAL error message returned by the backend
+      // (invalid credentials vs no permissions vs network issue) instead
+      // of always showing a generic "Invalid credentials" message.
+      const detail = error.response?.data?.detail;
+      const msg = detail || 'Connection failed. Please check your keys and try again.';
+      toast.error(msg);
       onConnectionError(msg);
     } finally {
       setIsLoading(false);
@@ -48,19 +58,21 @@ export default function AWSConnectCard({ onConnectionSuccess, onConnectionError 
       </div>
 
       <form onSubmit={handleTestConnection} className="space-y-4">
-        <Input 
-          label="Access Key ID" 
-          type="text" 
-          placeholder="AKIAIOSFODNN7EXAMPLE" 
-          value={accessKey} 
-          onChange={(e) => setAccessKey(e.target.value)} 
+        <Input
+          label="Access Key ID"
+          type="text"
+          placeholder="AKIAIOSFODNN7EXAMPLE"
+          value={accessKey}
+          onChange={(e) => setAccessKey(e.target.value)}
+          autoComplete="off"
         />
-        <Input 
-          label="Secret Access Key" 
-          type="password" 
-          placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" 
-          value={secretKey} 
-          onChange={(e) => setSecretKey(e.target.value)} 
+        <Input
+          label="Secret Access Key"
+          type="password"
+          placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+          value={secretKey}
+          onChange={(e) => setSecretKey(e.target.value)}
+          autoComplete="off"
         />
         <Button type="submit" isLoading={isLoading} className="mt-4">
           Test & Save Connection
