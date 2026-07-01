@@ -86,11 +86,11 @@ export default function ResourceTable({ resources = [] }) {
                 <td className="p-4 text-text-muted">{res.region}</td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    <span className="w-8 text-right">{res.cpu_percent || 0}%</span>
+                    <span className="w-8 text-right">{res.avg_cpu_percent || 0}%</span>
                     <div className="flex-1 h-2 bg-bg-primary rounded-full overflow-hidden">
                       <div 
-                        className={`h-full ${res.cpu_percent > 80 ? 'bg-red-500' : res.cpu_percent < 20 ? 'bg-amber-500' : 'bg-green-500'}`} 
-                        style={{ width: `${Math.max(0, Math.min(100, res.cpu_percent || 0))}%` }}
+                        className={`h-full ${res.avg_cpu_percent > 80 ? 'bg-red-500' : res.avg_cpu_percent < 20 ? 'bg-amber-500' : 'bg-green-500'}`} 
+                        style={{ width: `${Math.max(0, Math.min(100, res.avg_cpu_percent || 0))}%` }}
                       />
                     </div>
                   </div>

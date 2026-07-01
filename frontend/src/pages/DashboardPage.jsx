@@ -5,12 +5,7 @@ import CostTrendChart from '../components/CostTrendChart';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import Button from '../components/ui/Button';
 import { getDashboardSummary, getRecommendations } from '../api/resources';
-
-const dummyChartData = Array.from({ length: 30 }).map((_, i) => ({
-  date: `Day ${i + 1}`,
-  trajectory: 1000 + (i * 50) + Math.random() * 200,
-  optimised: 1000 + (i * 10) + Math.random() * 50,
-}));
+import { getForecast } from '../api/ml';
 
 export default function DashboardPage() {
   const { data: summary, isLoading: loadingSummary } = useQuery({
@@ -20,6 +15,11 @@ export default function DashboardPage() {
   const { data: recs, isLoading: loadingRecs } = useQuery({
     queryKey: ['recommendations'],
     queryFn: getRecommendations,
+  });
+  // FIXED: fetch real forecast data for the chart instead of random dummy data
+  const { data: forecastData } = useQuery({
+    queryKey: ['forecast'],
+    queryFn: getForecast,
   });
 
   if (loadingSummary || loadingRecs) {
@@ -33,9 +33,6 @@ export default function DashboardPage() {
     );
   }
 
-  // BUG FIXED: the backend now returns total_spend / wasted_spend /
-  // savings_percent / resources_scanned directly (see dashboard.py fix),
-  // so these now actually populate instead of always falling back to 0.
   const data = {
     total_spend: summary?.total_spend || 0,
     wasted_spend: summary?.wasted_spend || 0,
@@ -43,7 +40,23 @@ export default function DashboardPage() {
     resources_scanned: summary?.resources_scanned || 0,
   };
 
-  const topRecs = Array.isArray(recs) ? recs.slice(0, 3) : [];
+  // FIXED: Build real chart data from forecast API response.
+  // trajectory = predicted cost without optimisation (upper_bound)
+  // optimised  = predicted cost after applying recommendations (lower_bound)
+  // If no forecast data yet, fall back to a flat placeholder so chart doesn't crash.
+  const chartData = forecastData?.data?.length > 0
+    ? forecastData.data.map((row, i) => ({
+        date: `Day ${i + 1}`,
+        trajectory: row.upper_bound,
+        optimised: row.lower_bound,
+      }))
+    : Array.from({ length: 30 }).map((_, i) => ({
+        date: `Day ${i + 1}`,
+        trajectory: data.total_spend / 30 || 100,
+        optimised: (data.total_spend - data.wasted_spend) / 30 || 80,
+      }));
+
+  const topRecs = Array.isArray(recs) ? recs.filter(r => r.status === 'pending').slice(0, 3) : [];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -66,7 +79,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-bg-secondary border border-border p-6 rounded-xl shadow-sm">
           <h2 className="text-lg font-semibold text-text-primary mb-6">30-Day Cost Projection</h2>
-          <CostTrendChart data={summary?.chart_data || dummyChartData} />
+          <CostTrendChart data={chartData} />
         </div>
 
         <div className="bg-bg-secondary border border-border p-6 rounded-xl shadow-sm">
@@ -76,13 +89,9 @@ export default function DashboardPage() {
               <div key={rec.id} className="p-4 bg-bg-primary border border-border rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-medium text-text-primary truncate pr-4">{rec.title || 'Resource'}</h4>
-                  {/* BUG FIXED: was reading rec.estimated_savings, which never
-                      existed on the Recommendation model. Correct field is
-                      rec.saving_amount (matches the SQLAlchemy model exactly). */}
                   <span className="text-accent font-semibold flex-shrink-0">${(rec.saving_amount || 0).toFixed(0)}/mo</span>
                 </div>
                 <p className="text-sm text-text-muted mb-4">{rec.description || 'Optimize resource to reduce cost.'}</p>
-                <Button className="w-full text-sm py-1.5">Apply</Button>
               </div>
             )) : (
               <p className="text-sm text-text-muted text-center py-4">Run a scan to generate recommendations.</p>
