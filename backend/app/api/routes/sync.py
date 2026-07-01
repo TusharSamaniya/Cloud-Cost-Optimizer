@@ -16,19 +16,11 @@ def sync_cloud_data(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    The master sync route. Checks the feature flag to decide where to get data,
-    then automatically runs the ML pipeline so cluster labels, recommendations,
-    anomalies and forecasts are generated right away.
-    """
-
     if settings.USE_MOCK_DATA:
         data = get_mock_resources()
-
         db.query(Resource).filter(Resource.user_id == current_user.id).delete()
-
         for item in data:
-            new_resource = Resource(
+            db.add(Resource(
                 user_id=current_user.id,
                 resource_id=item["resource_id"],
                 name=item["service_name"],
@@ -36,37 +28,20 @@ def sync_cloud_data(
                 region=item["region"],
                 monthly_cost=item["cost_amount"],
                 avg_cpu_percent=item["cpu_utilization"],
-                status="healthy",  # default until ML pipeline runs and relabels it
-            )
-            db.add(new_resource)
-
+                status="healthy",
+            ))
         db.commit()
 
-        # BUG FIXED: sync used to only insert raw resources and stop there.
-        # Without running the pipeline immediately, the dashboard stayed at
-        # $0 / 0% forever because clustering, recommendations and forecasts
-        # never got generated until the user manually hit "Run Scan".
-        # Now sync ALSO runs the full ML pipeline right after inserting data.
         try:
             from ml.pipeline import run_full_pipeline
             run_full_pipeline(current_user.id)
         except Exception as e:
-            # Don't fail the whole sync if ML pipeline has an issue —
-            # resources are still saved, user can hit "Run Scan" to retry ML
             print(f"Warning: ML pipeline failed during sync: {e}")
 
         return {"message": "Mock data synced successfully!", "resources_added": len(data)}
 
     else:
         # Real AWS path
-        try:
-            from app.services.aws_service import fetch_ec2_instances, fetch_cost_explorer, fetch_cloudwatch_metrics
-        except ImportError:
-            raise HTTPException(
-                status_code=501,
-                detail="Real AWS sync is not implemented yet. Enable USE_MOCK_DATA=true in .env to test with sample data."
-            )
-
         if not current_user.aws_access_key or not current_user.aws_secret_key:
             raise HTTPException(
                 status_code=400,
@@ -74,17 +49,57 @@ def sync_cloud_data(
             )
 
         try:
+            from app.services.aws_service import (
+                fetch_ec2_instances,
+                fetch_cost_explorer,
+                fetch_cloudwatch_metrics
+            )
+
+            # Step 1: Get list of running EC2 instances
             instances = fetch_ec2_instances(current_user)
+
+            # FIXED: Step 2 — fetch real costs from Cost Explorer
+            # Build a per-service cost map from the last 30 days of billing data
+            cost_data = fetch_cost_explorer(current_user)
+            total_cost = 0.0
+            for day in cost_data:
+                for group in day.get('Total', {}).values():
+                    try:
+                        total_cost += float(group.get('Amount', 0))
+                    except (ValueError, TypeError):
+                        pass
+
+            # Distribute total cost evenly across instances as an approximation
+            # (A production system would use resource-level tagging for exact costs)
+            per_instance_cost = round(total_cost / len(instances), 2) if instances else 0.0
+
+            # FIXED: Step 3 — fetch real CPU from CloudWatch for each instance
+            for inst in instances:
+                inst["monthly_cost"] = per_instance_cost
+                try:
+                    inst["avg_cpu_percent"] = fetch_cloudwatch_metrics(
+                        current_user, inst["resource_id"]
+                    )
+                except Exception:
+                    inst["avg_cpu_percent"] = 0.0  # fallback if CloudWatch fails
+
+        except HTTPException:
+            raise
         except Exception as e:
-            # BUG FIXED: previously any AWS failure (bad keys, no permissions,
-            # network issue) was silently swallowed and the user just saw
-            # "Real AWS sync triggered (Logic pending)" with no real data.
-            # Now we raise a proper error so the frontend shows what's wrong.
             raise HTTPException(status_code=400, detail=f"AWS connection failed: {str(e)}")
 
         db.query(Resource).filter(Resource.user_id == current_user.id).delete()
         for inst in instances:
-            db.add(Resource(user_id=current_user.id, **inst))
+            db.add(Resource(
+                user_id=current_user.id,
+                resource_id=inst["resource_id"],
+                name=inst["name"],
+                type=inst["type"],
+                region=inst["region"],
+                monthly_cost=inst["monthly_cost"],
+                avg_cpu_percent=inst["avg_cpu_percent"],
+                status=inst["status"],
+            ))
         db.commit()
 
         try:
@@ -101,6 +116,5 @@ def get_user_resources(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Returns all resources currently saved in the database for the logged-in user."""
     resources = db.query(Resource).filter(Resource.user_id == current_user.id).all()
     return resources

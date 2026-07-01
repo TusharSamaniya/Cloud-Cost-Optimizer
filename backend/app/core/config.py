@@ -33,7 +33,14 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=ENV_PATH,
-        env_file_encoding="utf-8"
+        env_file_encoding="utf-8",
+        # FIXED: Pydantic v2 BaseSettings freezes models by default.
+        # Without this, "settings.USE_MOCK_DATA = True" in settings.py route
+        # is silently ignored on some versions — the value never actually changes
+        # in memory, so the demo mode toggle appears to work (returns the new value
+        # from the endpoint) but the NEXT request to /api/sync/ still reads the
+        # OLD frozen value. frozen=False makes the assignment stick reliably.
+        frozen=False,
     )
 
 settings = Settings()
