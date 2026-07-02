@@ -26,6 +26,11 @@ from app.api.routes import settings as app_settings_routes  # renamed clearly
 
 from app.core.scheduler import scheduler
 
+origins = [
+    "http://localhost:5173", # Keep this for local testing
+    "https://your-frontend-app.vercel.app", # Replace with your real Vercel domain later
+]
+
 # 2. Lifespan events (Startup & Shutdown)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,7 +44,7 @@ app = FastAPI(title="Cloud Cost Optimizer API", lifespan=lifespan)
 # 4. Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,       
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
