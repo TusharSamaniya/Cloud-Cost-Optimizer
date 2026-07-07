@@ -15,8 +15,8 @@ from app.db.session import SessionLocal
 from app.db.models.resource import Resource
 from app.db.models.user import User
 
-from ml.base_model import CloudMLModel
-from ml.data_loader import MLDataLoader
+from backend.ml.base_model import CloudMLModel
+from backend.ml.data_loader import MLDataLoader
 
 
 class ResourceClusterer(CloudMLModel):

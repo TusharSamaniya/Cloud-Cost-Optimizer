@@ -23,10 +23,10 @@ def run_full_pipeline(user_id: int) -> dict:
     Each step is wrapped in its own try/except so one failure
     does not prevent the remaining models from running.
     """
-    from ml.clustering        import ResourceClusterer
-    from ml.anomaly_detection import AnomalyDetector
-    from ml.forecasting       import CostForecaster
-    from ml.recommendations   import RecommendationEngine
+    from backend.ml.clustering        import ResourceClusterer
+    from backend.ml.anomaly_detection import AnomalyDetector
+    from backend.ml.forecasting       import CostForecaster
+    from backend.ml.recommendations   import RecommendationEngine
 
     # Define pipeline steps in execution order
     steps = [

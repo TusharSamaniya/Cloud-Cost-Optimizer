@@ -35,7 +35,7 @@ async def daily_sync_and_pipeline():
     logger.info("Starting automated nightly sync...")
 
     # ✅ FIX 3: import here (inside the function) to avoid circular imports at startup
-    from ml.pipeline import run_full_pipeline
+    from backend.ml.pipeline import run_full_pipeline
 
     users = get_all_active_users()
     logger.info(f"Found {len(users)} active user(s) to sync.")

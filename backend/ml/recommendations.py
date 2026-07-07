@@ -8,7 +8,7 @@ from app.db.session import SessionLocal
 from app.db.models.resource import Resource
 from app.db.models.anomaly import Anomaly
 from app.db.models.recommendation import Recommendation
-from ml.base_model import CloudMLModel
+from backend.ml.base_model import CloudMLModel
 
 class RecommendationEngine(CloudMLModel):
     def run(self, user_id: int):

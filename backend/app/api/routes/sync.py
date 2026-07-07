@@ -33,7 +33,7 @@ def sync_cloud_data(
         db.commit()
 
         try:
-            from ml.pipeline import run_full_pipeline
+            from backend.ml.pipeline import run_full_pipeline
             run_full_pipeline(current_user.id)
         except Exception as e:
             print(f"Warning: ML pipeline failed during sync: {e}")
@@ -103,7 +103,7 @@ def sync_cloud_data(
         db.commit()
 
         try:
-            from ml.pipeline import run_full_pipeline
+            from backend.ml.pipeline import run_full_pipeline
             run_full_pipeline(current_user.id)
         except Exception as e:
             print(f"Warning: ML pipeline failed during sync: {e}")

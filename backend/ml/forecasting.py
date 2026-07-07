@@ -14,8 +14,8 @@ from app.db.session import SessionLocal
 from app.db.models.forecast import Forecast
 from app.db.models.resource import Resource
 
-from ml.base_model import CloudMLModel
-from ml.data_loader import MLDataLoader
+from backend.ml.base_model import CloudMLModel
+from backend.ml.data_loader import MLDataLoader
 
 class CostForecaster(CloudMLModel):
     def __init__(self):
