@@ -26,9 +26,16 @@ from app.api.routes import settings as app_settings_routes  # renamed clearly
 
 from app.core.scheduler import scheduler
 
+# --- CORS origins ---
+# Default origins for local development. In production (Railway), set the
+# CORS_ORIGINS environment variable to a comma-separated list of your real
+# frontend URL(s), e.g.:
+#   CORS_ORIGINS=https://your-app.vercel.app,https://your-custom-domain.com
+_default_origins = "http://localhost:5173,http://127.0.0.1:5173"
 origins = [
-    "http://localhost:5173", # Keep this for local testing
-    "https://your-frontend-app.vercel.app", # Replace with your real Vercel domain later
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", _default_origins).split(",")
+    if origin.strip()
 ]
 
 # 2. Lifespan events (Startup & Shutdown)
@@ -44,7 +51,7 @@ app = FastAPI(title="Cloud Cost Optimizer API", lifespan=lifespan)
 # 4. Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,       
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,7 +60,7 @@ app.add_middleware(
 # 5. The Health Check Route
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "version": "1.0"}
+    return {"status": "ok", "version": "1.0", "cors_origins": origins}
 
 # 6. Register Routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
