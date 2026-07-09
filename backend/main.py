@@ -31,7 +31,7 @@ from app.core.scheduler import scheduler
 # CORS_ORIGINS environment variable to a comma-separated list of your real
 # frontend URL(s), e.g.:
 #   CORS_ORIGINS=https://your-app.vercel.app,https://your-custom-domain.com
-_default_origins = "http://localhost:5173,https://cloud-cost-optimizer-livid.vercel.app/"
+_default_origins = "http://localhost:5173,https://cloud-cost-optimizer-livid.vercel.app"
 origins = [
     origin.strip()
     for origin in os.getenv("CORS_ORIGINS", _default_origins).split(",")
