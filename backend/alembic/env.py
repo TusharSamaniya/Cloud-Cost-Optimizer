@@ -1,30 +1,27 @@
 import sys
 import os
 from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, create_engine
 from sqlalchemy import pool
 from alembic import context
 
-# 1. Add the backend folder to Python's path so it can find 'app'
+# 1. Add the backend folder to Python path so it can find 'app'
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# 2. Import ALL your models so Alembic knows what tables to create
+# 2. Import ALL models so Alembic knows what tables to create
 from app.db.base import Base
-# Explicitly import the new Forecast model so Alembic registers it
 from app.db.models.forecast import Forecast
 from app.db.models import user, resource, recommendation, anomaly
 
-# This is the Alembic Config object
 config = context.config
 
-# 3. THE BYPASS: Hardcode the exact connection string to avoid Windows .env bugs
-# config.set_main_option(
-#     "sqlalchemy.url", 
-#     "postgresql://admin:supersecretpassword@127.0.0.1:5433/cloudcost"
-# )
+# 3. FIXED: Override sqlalchemy.url with DATABASE_URL env variable if it exists.
+#    This means you can set $env:DATABASE_URL in PowerShell and Alembic will use
+#    it instead of whatever is hardcoded in alembic.ini — no more stale URLs.
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
 
-# Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
@@ -33,7 +30,6 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -41,7 +37,6 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
@@ -52,12 +47,10 @@ def run_migrations_online():
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-
     with connectable.connect() as connection:
         context.configure(
             connection=connection, target_metadata=target_metadata
         )
-
         with context.begin_transaction():
             context.run_migrations()
 
